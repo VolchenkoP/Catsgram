@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.catsgram.exception.ConditionsNotMetException;
 import ru.yandex.practicum.catsgram.exception.NotFoundException;
+import ru.yandex.practicum.catsgram.exception.ParameterNotValidException;
 import ru.yandex.practicum.catsgram.model.Post;
 
 import java.time.Instant;
@@ -19,15 +20,19 @@ public class PostService {
     private final UserService userService;
 
     public List<Post> findAllPosts(int size, String sort, int from) {
-        if (size <= 0) {
-            throw new ConditionsNotMetException("Параметр" + size + " должен быть больше 0");
+        if (size < 0) {
+            throw new ParameterNotValidException(String.valueOf(size), "Некорректный размер выборки. " +
+                    "Размер должен быть больше нуля");
         }
-        if (from < 0) {
-            throw new ConditionsNotMetException("Параметр from должен быть больше или равено 0");
+        if (from <= 0) {
+            throw new ParameterNotValidException(String.valueOf(from), "Некорректно задано начало выборки. " +
+                    "Начало выборки не может быть меньше нуля");
         }
         if (!(SortOrder.from(sort).equals(SortOrder.ASCENDING) || SortOrder.from(sort).equals(SortOrder.DESCENDING))) {
-            throw new ConditionsNotMetException(sort + "не может быть параметром сортировки, задайте asc или desc");
+            throw new ParameterNotValidException(sort, "Некорректно задан параметр сортировки. " +
+                    "Параметр должен быть asc или desc");
         }
+
         return posts.values()
                 .stream()
                 .sorted((p0, p1) -> {
@@ -36,7 +41,7 @@ public class PostService {
                         comp = -1 * comp;
                     }
                     return comp;
-                }).skip(from).limit(size).collect(Collectors.toList());
+                }).skip(from-1).limit(size).collect(Collectors.toList());
     }
 
     public Post createPost(Post post) {
@@ -71,9 +76,9 @@ public class PostService {
     public Post getPostById(long id) {
         return posts.values()
                 .stream()
-                .filter(post -> post.getId().equals(id))
+                .filter(post -> post.getId() == id)
                 .findFirst()
-                .orElseThrow(() -> new NotFoundException("Post с id = " + id + " не найден"));
+                .orElseThrow(() -> new ConditionsNotMetException("Указанный пост не найден"));
     }
 
     private long getNextId() {
