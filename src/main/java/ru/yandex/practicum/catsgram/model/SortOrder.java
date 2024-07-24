@@ -1,9 +1,9 @@
-package ru.yandex.practicum.catsgram.service;
+package ru.yandex.practicum.catsgram.model;
 
 public enum SortOrder {
-    ASCENDING,
-    DESCENDING;
+    ASCENDING, DESCENDING;
 
+    // Преобразует строку в элемент перечисления
     public static SortOrder from(String order) {
         switch (order.toLowerCase()) {
             case "ascending":
@@ -17,4 +17,3 @@ public enum SortOrder {
         }
     }
 }
-
